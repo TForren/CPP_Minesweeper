@@ -11,6 +11,16 @@ class board {
         int boardX,boardY;
         std::list<std::pair<int,int> > mineList;
 
+        bool isValid(int x, int y) {
+            bool result = true;
+            if ( x >= boardX || x < 0 || y >= boardY || y < 0) {
+                result = false;
+            } else if (!(boardArray[x][y] == '@')) {
+                result = false;
+            }
+            return result;
+        }
+
         //isSafe
         //checks if there already exists a mine at the given x,y
         //in: coordinate x,y 
@@ -18,7 +28,7 @@ class board {
             bool result = true;
             std::list<std::pair<int,int> >::iterator iter;
             for (iter = mineList.begin(); iter != mineList.end(); ++iter) {
-                cout << "comparing: " << x << ", " << y << " with " << iter->first << ", " << iter->second << endl;
+                //cout << "comparing: " << x << ", " << y << " with " << iter->first << ", " << iter->second << endl;
                 if (x == iter->first && y == iter->second) {
                     result = false;
                       break;
@@ -55,9 +65,37 @@ class board {
             cout << "BIG OL' BOOOOM YOU DIE GG" << endl;
         }
 
+        //clears the current spot and recurses over other completely clear spots 
         void clearSpot(int x, int y) {
-            boardArray[x][y] = 'O';
-            
+            //boardArray[x][y] = '-';
+            int mineCount = 0;
+            std::list<std::pair<int,int> > todo;
+
+            //check all surrounding squares of the current
+            for (int i = -1; i <= 1; ++i) {
+                for (int j = -1; j <= 1; ++j) {
+                    if (!isValid(x+i,y+j)) {
+                        continue;
+                    } else {
+                        if (!isSafe(x+i,y+j)) {
+                            mineCount += 1;
+                        } else {
+                            todo.push_back(std::make_pair(x+i,y+j));
+                        }
+                    }
+                }
+            }
+
+            if (mineCount == 0) {
+                boardArray[x][y] = '-';
+                //recurse over the adjacent non-mine spaces
+                std::list<std::pair<int,int> >::iterator iter;
+                for (iter = todo.begin(); iter != todo.end(); ++iter) {
+                    clearSpot(iter->first,iter->second);
+                }
+            } else {
+                boardArray[x][y] = '0' + mineCount;
+            }
         }
 
     public: 
@@ -77,7 +115,6 @@ class board {
         void touchSpot(int x, int y) {
             cout << "touching " << x << ", " << y << endl;
             if (!isSafe(x,y)) {
-                //fukkin BOOOM, yo
                 explode();
             } else {
                 clearSpot(x,y);
@@ -87,15 +124,15 @@ class board {
         void displayBoard() {
                 int rowNum = 1;
                 for (int i = 0; i < boardY; ++i) {
-                    cout << i;
+                    if (i < 10) { cout << i << " "; } else { cout << i;}; 
                     for (int j = 0; j < boardX; ++j) {
-                        cout << " " << boardArray[i][j];
+                        cout << "  " << boardArray[i][j];
                     }
                     cout << endl;
                 }
-                cout << " "; 
+                cout << "  "; 
                 for (int i = 0; i < boardY; ++i){
-                    cout << " " << i ;
+                    if (i < 10) { cout << "  " << i; } else { cout << " " << i; };
                 }
                 cout << endl;
         }
@@ -106,9 +143,9 @@ class board {
 int main() {
     cout << "main" << endl;
 
-    int givenX = 10;
-    int givenY = 10;
-    int givenMineCount = 6;
+    int givenX = 11;
+    int givenY = 11;
+    int givenMineCount = 20;
     board gameBoard = *new board(givenX,givenY,givenMineCount);
     gameBoard.displayBoard();
     gameBoard.touchSpot(5,5);
