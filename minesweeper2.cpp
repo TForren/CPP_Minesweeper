@@ -9,8 +9,8 @@ class board {
     private:
         char** boardArray;
         int boardX,boardY;
+        int gameState; //0: in progress 1: loss 2: win
         std::list<std::pair<int,int> > mineList;
-
         bool isValid(int x, int y) {
             bool result = true;
             if ( x >= boardX || x < 0 || y >= boardY || y < 0) {
@@ -28,7 +28,6 @@ class board {
             bool result = true;
             std::list<std::pair<int,int> >::iterator iter;
             for (iter = mineList.begin(); iter != mineList.end(); ++iter) {
-                //cout << "comparing: " << x << ", " << y << " with " << iter->first << ", " << iter->second << endl;
                 if (x == iter->first && y == iter->second) {
                     result = false;
                       break;
@@ -44,13 +43,11 @@ class board {
         void createMine(int x, int y) {
             int randX = rand() % y;
             int randY = rand() % x;
-            cout << "Trying " << randX << ", " << randY << endl; 
             while (!isSafe(randX, randY)) {
                 randX = rand() % y;
                 randY = rand() % x;
             }
             mineList.push_back(std::make_pair(randX,randY));
-            cout << "Created a mine: " << randX << ", " << randY << endl;
         }
 
         //creates all mines by calling createMine.  
@@ -63,6 +60,7 @@ class board {
 
         void explode() {
             cout << "BIG OL' BOOOOM YOU DIE GG" << endl;
+            gameState = 1;
         }
 
         //clears the current spot and recurses over other completely clear spots 
@@ -98,6 +96,21 @@ class board {
             }
         }
 
+        void checkWin() {
+            int coverCount = 0;
+            for (int i = 0; i < boardX; ++i) {
+                for (int j = 0; j < boardY; ++j) {
+                    if (boardArray[i][j] == '@') {
+                        ++coverCount;
+                    }
+                }
+            }
+            if (mineList.size() >= coverCount) {
+                gameState = 2;
+                cout << "You win" << endl;
+            }
+        }
+
     public: 
         board(int x, int y, int num_of_mines) {
             boardArray = new char*[x];
@@ -113,41 +126,54 @@ class board {
         }
         
         void touchSpot(int x, int y) {
-            cout << "touching " << x << ", " << y << endl;
+            cout << "sweeping: " << x << ", " << y << endl;
             if (!isSafe(x,y)) {
                 explode();
             } else {
                 clearSpot(x,y);
             }
+            checkWin();
         }
 
         void displayBoard() {
-                int rowNum = 1;
-                for (int i = 0; i < boardY; ++i) {
-                    if (i < 10) { cout << i << " "; } else { cout << i;}; 
-                    for (int j = 0; j < boardX; ++j) {
-                        cout << "  " << boardArray[i][j];
-                    }
-                    cout << endl;
-                }
-                cout << "  "; 
-                for (int i = 0; i < boardY; ++i){
-                    if (i < 10) { cout << "  " << i; } else { cout << " " << i; };
+            int rowNum = 1;
+            for (int i = 0; i < boardY; ++i) {
+                if (i < 10) { cout << i << " "; } else { cout << i;}; 
+                for (int j = 0; j < boardX; ++j) {
+                    cout << "  " << boardArray[i][j];
                 }
                 cout << endl;
+            }
+            cout << "  "; 
+            for (int i = 0; i < boardY; ++i){
+                if (i < 10) { cout << "  " << i; } else { cout << " " << i; };
+            }
+            cout << endl;
         }
-            
+        
+        void acceptTouchLocation() {
+            int x,y;
+            cout << "x y: ";
+            cin >> x >> y;
+            touchSpot(x,y);
+        }
+
+        int getGameState() {
+            return gameState;
+        }
 };
 
 
-int main() {
-    cout << "main" << endl;
-
-    int givenX = 11;
-    int givenY = 11;
-    int givenMineCount = 20;
+int main(int argc,char *argv[]) {
+    int givenX = atoi(argv[2]);
+    int givenY = atoi(argv[1]);
+    int givenMineCount = atoi(argv[3]);
+    cout <<"New Board: [" << givenX << ", " << givenY << "] | mines: " << givenMineCount << endl;
     board gameBoard = *new board(givenX,givenY,givenMineCount);
     gameBoard.displayBoard();
-    gameBoard.touchSpot(5,5);
-    gameBoard.displayBoard();
+    
+    do {
+        gameBoard.acceptTouchLocation();
+        if (gameBoard.getGameState() != 1) { gameBoard.displayBoard();};
+    } while (gameBoard.getGameState() == 0);
 }
