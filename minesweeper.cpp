@@ -1,19 +1,19 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h> // srand, rand
-#include <list>
+#include <vector>
 
 class board {
     
     private:
-        char** boardArray;
+        char* boardArray;
        
-        std::list<std::pair<int,int> > posBlackList;
+        std::vector<std::pair<int,int> > posBlackList;
 
         bool validPos(int x, int y) {
             bool result = true;
             if (x || y) { //check if not null
-                std::list<std::pair<int,int> >::iterator iter;
+                std::vector<std::pair<int,int> >::iterator iter;
                 for (iter = posBlackList.begin(); iter != posBlackList.end(); ++iter) {
                         if (x == iter->first && y == iter->second) {
                             result = false;

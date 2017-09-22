@@ -1,21 +1,22 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h> // srand, rand
-#include <list>
+#include <vector>
 using namespace std;
 
 class board {
     
     private:
-        char** boardArray;
+        std::vector<char> boardArray;
         int boardX,boardY;
         int gameState; //0: in progress 1: loss 2: win
-        std::list<std::pair<int,int> > mineList;
+        std::vector<int> mineList;
+
         bool isValid(int x, int y) {
             bool result = true;
             if ( x >= boardX || x < 0 || y >= boardY || y < 0) {
                 result = false;
-            } else if (!(boardArray[x][y] == '@')) {
+            } else if (!(boardArray[x+y] == '@')) {
                 result = false;
             }
             return result;
@@ -26,9 +27,9 @@ class board {
         //in: coordinate x,y 
         bool isSafe(int x, int y) {
             bool result = true;
-            std::list<std::pair<int,int> >::iterator iter;
-            for (iter = mineList.begin(); iter != mineList.end(); ++iter) {
-                if (x == iter->first && y == iter->second) {
+            std::vector<int>::iterator iter;
+            for (std::vector<int>::size_type i = 0; i != mineList.size(); ++i) {
+                if (mineList[i] == (x+(y*boardX))) {
                     result = false;
                       break;
                     }
@@ -40,22 +41,26 @@ class board {
         //randomly picks an X and Y pos for a mine.
         //checks if the pos is already used from blacklist and picks another if it is.
         //in: coordinate x,y
-        void createMine(int x, int y) {
-            int randX = rand() % y;
-            int randY = rand() % x;
+        void createMine(int maxX, int maxY) {
+            int randX = rand() % maxX;
+            int randY = rand() % maxY;
             while (!isSafe(randX, randY)) {
-                randX = rand() % y;
-                randY = rand() % x;
+                randX = rand() % maxX;
+                randY = rand() % maxY;
             }
-            mineList.push_back(std::make_pair(randX,randY));
+            mineList.push_back(randX+(randY*boardX));
+            cout << "Made mine at " << randX << "+" << (randY*boardX)<< endl;
         }
 
         //creates all mines by calling createMine.  
         void createAllMines(int x, int y, int num_of_mines) {
             srand (time(NULL));
+            cout << "Creating " << num_of_mines << " mines " << endl;
+            mineList.reserve(num_of_mines);
             for (int i = 0; i < num_of_mines; ++i) {
                createMine(x,y);
             }
+            cout << "made all mines" << endl;
         }
 
         void explode() {
@@ -67,7 +72,7 @@ class board {
         void clearSpot(int x, int y) {
             //boardArray[x][y] = '-';
             int mineCount = 0;
-            std::list<std::pair<int,int> > todo;
+            std::vector<std::pair<int,int> > todo;
 
             //check all surrounding squares of the current
             for (int i = -1; i <= 1; ++i) {
@@ -78,32 +83,28 @@ class board {
                         if (!isSafe(x+i,y+j)) {
                             mineCount += 1;
                         } else {
-                            todo.push_back(std::make_pair(x+i,y+j));
+                            todo.push_back(std::make_pair((x+i),(y+j)));
                         }
                     }
                 }
             }
-            cout << "collected mines: " << mineCount << endl;
             if (mineCount == 0) {
-                cout << "xy " << x << y << endl;
-                boardArray[x][y] = '-';
+                boardArray[x+y] = '-';
                 //recurse over the adjacent non-mine spaces
-                std::list<std::pair<int,int> >::iterator iter;
+                std::vector<std::pair<int,int> >::iterator iter;
                 for (iter = todo.begin(); iter != todo.end(); ++iter) {
-                        //clearSpot(iter->first,iter->second);
+                        clearSpot(iter->first,iter->second);
                 }
             } else {
-                boardArray[x][y] = '0' + mineCount;
+                boardArray[x+y] = '0' + mineCount;
             }
         }
 
         void checkWin() {
             int coverCount = 0;
-            for (int i = 0; i < boardY; ++i) {
-                for (int j = 0; j < boardX; ++j) {
-                    if (boardArray[i][j] == '@') {
-                        ++coverCount;
-                    }
+            for (std::vector<int>::size_type i = 0; i != boardArray.size(); ++i) {
+                if (boardArray[i] == '@') {
+                    ++coverCount;
                 }
             }
             if (mineList.size() >= coverCount) {
@@ -114,20 +115,17 @@ class board {
 
     public: 
         board(int x, int y, int num_of_mines) {
-            boardArray = new char*[x];
+            boardArray.reserve(x+y);
             boardX = x;
             boardY = y;
-            for (int i = 0; i < y; ++i) {
-                boardArray[i] = new char[y];
-                for (int j = 0; j < x; ++j) {
-                    boardArray[i][j] = '@';
-                }
+
+            for (int i = 0; i < (x*y); ++i) {
+                boardArray.push_back('@');
             }
             createAllMines(x,y,num_of_mines);
         }
         
         void touchSpot(int x, int y) {
-            cout << "sweeping: " << x << ", " << y << endl;
             if (!isSafe(x,y)) {
                 explode();
             } else {
@@ -138,16 +136,23 @@ class board {
 
         void displayBoard() {
             int rowNum = 1;
-            for (int i = 0; i < boardY; ++i) {
-                if (i < 10) { cout << (boardY - 1 - i) << " "; } else { cout << (boardY - 1 - i);}; 
-                for (int j = 0; j < boardX; ++j) {
-                    cout << "  " << boardArray[i][j];
+            //for (int i = 0; i < boardY; ++i) {
+             ///   for (int j = 0; j < boardX ; ++j) {
+             //       cout << " " << boardArray[(i*boardX)+j];
+             //   }
+            //}
+            for (int i = 0; i < boardY ; ++i) {
+                cout << (boardY - i - 1);
+                if ((boardY - i - 1) < 10) { cout << "  "; } else { cout << " "; };
+                for (int j = 0; j < boardX ; ++j) {
+                    cout << boardArray[(j*boardX) + i] << "  "; 
                 }
                 cout << endl;
             }
-            cout << "  "; 
-            for (int i = 0; i < boardX; ++i){
-                if (i < 10) { cout << "  " << i; } else { cout << " " << i; };
+            cout << " ";
+            for (int i = 0; i < boardX; ++i) {
+                if (i < 10) { cout << "  ";} else { cout << " ";};
+                cout << i;
             }
             cout << endl;
         }
