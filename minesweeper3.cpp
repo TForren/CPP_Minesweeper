@@ -70,7 +70,6 @@ class board {
 
         //clears the current spot and recurses over other completely clear spots 
         void clearSpot(int x, int y) {
-            //boardArray[x][y] = '-';
             int mineCount = 0;
             std::vector<std::pair<int,int> > todo;
 
@@ -89,7 +88,8 @@ class board {
                 }
             }
             if (mineCount == 0) {
-                boardArray[x+y] = '-';
+                cout << "clear spot at: " << x+(y*boardX) << endl;
+                boardArray[x+(y*boardX)] = '-';
                 //recurse over the adjacent non-mine spaces
                 std::vector<std::pair<int,int> >::iterator iter;
                 for (iter = todo.begin(); iter != todo.end(); ++iter) {
@@ -136,11 +136,6 @@ class board {
 
         void displayBoard() {
             int rowNum = 1;
-            //for (int i = 0; i < boardY; ++i) {
-             ///   for (int j = 0; j < boardX ; ++j) {
-             //       cout << " " << boardArray[(i*boardX)+j];
-             //   }
-            //}
             for (int i = 0; i < boardY ; ++i) {
                 cout << (boardY - i - 1);
                 if ((boardY - i - 1) < 10) { cout << "  "; } else { cout << " "; };

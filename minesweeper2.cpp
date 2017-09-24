@@ -2,15 +2,17 @@
 #include <string>
 #include <stdlib.h> // srand, rand
 #include <list>
+#include <vector>
 using namespace std;
 
 class board {
     
     private:
-        char** boardArray;
+        std::vector<std::vector<char> > boardArray;
         int boardX,boardY;
         int gameState; //0: in progress 1: loss 2: win
         std::list<std::pair<int,int> > mineList;
+
         bool isValid(int x, int y) {
             bool result = true;
             if ( x >= boardX || x < 0 || y >= boardY || y < 0) {
@@ -56,6 +58,7 @@ class board {
             for (int i = 0; i < num_of_mines; ++i) {
                createMine(x,y);
             }
+            cout << "created all mines" << endl;
         }
 
         void explode() {
@@ -114,15 +117,9 @@ class board {
 
     public: 
         board(int x, int y, int num_of_mines) {
-            boardArray = new char*[x];
+            boardArray.resize(x, std::vector<char>(y, '@'));
             boardX = x;
             boardY = y;
-            for (int i = 0; i < y; ++i) {
-                boardArray[i] = new char[y];
-                for (int j = 0; j < x; ++j) {
-                    boardArray[i][j] = '@';
-                }
-            }
             createAllMines(x,y,num_of_mines);
         }
         
@@ -139,15 +136,17 @@ class board {
         void displayBoard() {
             int rowNum = 1;
             for (int i = 0; i < boardY; ++i) {
-                if (i < 10) { cout << (boardY - 1 - i) << " "; } else { cout << (boardY - 1 - i);}; 
+                cout << boardY - i - 1;
+                if ((boardY - i - 1) < 10) { cout << "  "; } else { cout << " "; };   
                 for (int j = 0; j < boardX; ++j) {
-                    cout << "  " << boardArray[i][j];
+                    cout << boardArray[j][i] << "  ";
                 }
                 cout << endl;
             }
-            cout << "  "; 
-            for (int i = 0; i < boardX; ++i){
-                if (i < 10) { cout << "  " << i; } else { cout << " " << i; };
+            cout << "   ";
+            for (int i = 0; i < boardX; ++i) {
+                cout << i;
+                if (i < 10) {cout << "  ";} else { cout << " ";};
             }
             cout << endl;
         }
