@@ -59,7 +59,6 @@ class board {
             for (int i = 0; i < num_of_mines; ++i) {
                createMine(x,y);
             }
-            cout << "created all mines" << endl;
         }
 
         void explode() {
@@ -110,6 +109,7 @@ class board {
             }
             if (mineList.size() >= coverCount) {
                 gameState = 2;
+                cout << " ";
                 for (int i = 0; i < (boardX / 2)+3; ++i) {cout << "==";}
                 cout << "YOU WIN!";
                 for (int i = 0; i < (boardX / 2)+3; ++i) {cout << "==";}
