@@ -15,6 +15,7 @@ class board {
 
         bool isValid(int x, int y) {
             bool result = true;
+            
             if ( x >= boardX || x < 0 || y >= boardY || y < 0) {
                 result = false;
             } else if (!(boardArray[x][y] == '@')) {
@@ -86,14 +87,12 @@ class board {
                     }
                 }
             }
-            cout << "collected mines: " << mineCount << endl;
             if (mineCount == 0) {
-                cout << "xy " << x << y << endl;
                 boardArray[x][y] = '-';
                 //recurse over the adjacent non-mine spaces
                 std::list<std::pair<int,int> >::iterator iter;
                 for (iter = todo.begin(); iter != todo.end(); ++iter) {
-                        //clearSpot(iter->first,iter->second);
+                        clearSpot(iter->first,iter->second);
                 }
             } else {
                 boardArray[x][y] = '0' + mineCount;
@@ -111,7 +110,10 @@ class board {
             }
             if (mineList.size() >= coverCount) {
                 gameState = 2;
-                cout << "You win" << endl;
+                for (int i = 0; i < (boardX / 2)+3; ++i) {cout << "==";}
+                cout << "YOU WIN!";
+                for (int i = 0; i < (boardX / 2)+3; ++i) {cout << "==";}
+                cout << endl;
             }
         }
 
@@ -136,8 +138,8 @@ class board {
         void displayBoard() {
             int rowNum = 1;
             for (int i = 0; i < boardY; ++i) {
-                cout << boardY - i - 1;
-                if ((boardY - i - 1) < 10) { cout << "  "; } else { cout << " "; };   
+                cout << i;
+                if (i < 10) { cout << "  "; } else { cout << " "; };   
                 for (int j = 0; j < boardX; ++j) {
                     cout << boardArray[j][i] << "  ";
                 }
@@ -155,6 +157,8 @@ class board {
             int x,y;
             cout << "x y: ";
             cin >> x >> y;
+            
+
             if (!isValid(x,y)) {
                 cout << "Invalid coordinate. Please enter a different coordinate" << endl;
             } else {
